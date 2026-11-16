@@ -1,7 +1,8 @@
 #include "appointment.h"
+#include "businessConfig.h"
 #include <iostream>
 using namespace std;
-appointment::appointment(customer c,string id,string d,string t):cust(c),appointmentId(id),date(d),time(t),status("Pending"){}
+appointment::appointment(customer c,string id,string d,string t,int ts):cust(c),appointmentId(id),date(d),time(t),status("Pending"),duration(ts){}
 void appointment::displayApp() const{
     cout<<"CustID: "<<cust.getCustomerId()<<endl;
     cout<<"Name: "<<cust.getName()<<endl;

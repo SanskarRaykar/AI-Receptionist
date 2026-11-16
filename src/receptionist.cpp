@@ -26,6 +26,34 @@ namespace{
         else if(min>=60) return false;
         else return true;
     }
+    bool isValidDate(string d){
+        if(d.size()!=10) return false;
+        else if(d[2]!='-' || d[5]!='-') return false;
+        else if(!(isdigit(d[0])) || !(isdigit(d[1])) || !(isdigit(d[3])) || !(isdigit(d[4])) || !(isdigit(d[6])) || !(isdigit(d[7])) || !(isdigit(d[8])) || !(isdigit(d[9]))) return false;
+        int month=(int)(d[3]-'0')*10+(int)(d[4]-'0');
+        int date=(int)(d[0]-'0')*10+(int)(d[1]-'0');
+        int year=(int)(d[6]-'0')*1000+(int)(d[7]-'0')*100+(int)(d[8]-'0')*10+(int)(d[9]-'0');
+        if(date<1) return false;
+        if(month<1 || month>12) return false;
+        else if(month==1 ||month==3 ||month==5 ||month==7 ||month==8 ||month==10 ||month==12){
+            if(date<=31) return true;
+            else return false;
+        }
+        else if(month==4 ||month==6 ||month==9 ||month==11){
+            if(date<=30) return true;
+            else return false;
+        }
+        else{
+            if((year % 400 == 0) || (year % 4 == 0 && year % 100 != 0)){
+                if(date<=29) return true;
+                else return false;
+            }
+            else{
+                if(date<=28) return true;
+                else return false;
+            }
+        }
+    }
     int timeToMin(string t){
         int min=(int)(t[3]-'0')*10+(int)(t[4]-'0');
         int hr=(int)(t[0]-'0')*10+(int)(t[1]-'0');
@@ -48,11 +76,18 @@ bool appointmentFit(const businessConfig& config,string t){
     return true;
 }
 bool addApp(vector<appointment>& a,const businessConfig& config,customer c,string d,string t){
-    if(appointmentFit(config,t) && isSlotAvailable(a,config,d,t)){
+    if(isValidDate(d) && appointmentFit(config,t) && isSlotAvailable(a,config,d,t)){
         string id=generateAppointmentId();
-        a.emplace_back(c,id,d,t);
+        int ts=config.getAppointmentDuration();
+        a.emplace_back(c,id,d,t,ts);
         return true;
     }
+    if(!isValidDate(d))
+        cout << "Invalid date" << endl;
+    if(!appointmentFit(config,t))
+        cout << "Invalid time/Outside working hours" << endl;
+    if(!isSlotAvailable(a,config,d,t))
+        cout << "Slot conflict" << endl;
     return false;
 }
 void displayAp(const vector<appointment>& a){

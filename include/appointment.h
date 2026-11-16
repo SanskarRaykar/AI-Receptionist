@@ -8,7 +8,7 @@ private:
     std::string date, time, status;
     int duration;
 public:
-    appointment(customer c,std::string id,std::string d,std::string t);
+    appointment(customer c,std::string id,std::string d,std::string t,int ts);
     void displayApp() const;
     std::string getCustPhone() const;
     std::string getDate() const;

@@ -54,12 +54,10 @@ int main(){
                 b=searchCust(c,phone);
                 if(b>=0){
                     cout<<"Enter your Appointment Date- "<<endl;
-                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
                     getline(cin,date);
                     cout<<"Enter your Appointment Time- "<<endl;
                     getline(cin,time);
                     if(addApp(a,config,c[b],date,time)) cout<<"Appointment booked succesfully"<<endl;
-                    else cout<<"Appointment is already booked/Not Available."<<endl;
                 }
                 else{
                     cout<<"Invalid Customer !!";
