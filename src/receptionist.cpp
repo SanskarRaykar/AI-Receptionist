@@ -2,6 +2,7 @@
 #include "businessConfig.h"
 #include <iostream>
 #include <cstddef>
+#include<ctime>
 using namespace std;
 namespace{
     int custCounter=1000;
@@ -13,6 +14,11 @@ namespace{
     int appCounter=5000;
     string generateAppointmentId(){
         return "APT-"+to_string(++appCounter);
+    }
+    int timeToMin(string t){
+        int min=(int)(t[3]-'0')*10+(int)(t[4]-'0');
+        int hr=(int)(t[0]-'0')*10+(int)(t[1]-'0');
+        return hr*60+min;
     }
 }
 namespace{
@@ -54,10 +60,46 @@ namespace{
             }
         }
     }
-    int timeToMin(string t){
-        int min=(int)(t[3]-'0')*10+(int)(t[4]-'0');
-        int hr=(int)(t[0]-'0')*10+(int)(t[1]-'0');
-        return hr*60+min;
+    bool isPastDate(string d){
+        time_t now=time(nullptr);
+        tm* current=localtime(&now);
+        if(current==nullptr){
+            cout<<"Error: Unable to retrive current date";
+            return false;
+        }
+        int month=(int)(d[3]-'0')*10+(int)(d[4]-'0');
+        int date=(int)(d[0]-'0')*10+(int)(d[1]-'0');
+        int year=(int)(d[6]-'0')*1000+(int)(d[7]-'0')*100+(int)(d[8]-'0')*10+(int)(d[9]-'0');
+        if(year<current->tm_year+1900) return true;
+        else if(year==current->tm_year+1900 && month<current->tm_mon+1) return true;
+        else if(year==current->tm_year+1900 && month==current->tm_mon+1 && date<current->tm_mday) return true;
+        return false;
+    }
+    bool isToday(string d){
+        time_t now=time(nullptr);
+        tm* current=localtime(&now);
+        if(current==nullptr){
+            cout<<"Error: Unable to retrive current date";
+            return false;
+        }  
+        int month=(int)(d[3]-'0')*10+(int)(d[4]-'0');
+        int date=(int)(d[0]-'0')*10+(int)(d[1]-'0');
+        int year=(int)(d[6]-'0')*1000+(int)(d[7]-'0')*100+(int)(d[8]-'0')*10+(int)(d[9]-'0');
+        if(year==current->tm_year+1900 && month==current->tm_mon+1 && date==current->tm_mday) return true;
+        return false; 
+    }
+    bool isPastTime(string t){
+        time_t now=time(nullptr);
+        tm* current=localtime(&now);
+        if(current==nullptr){
+            cout<<"Error: Unable to retrive current date";
+            return false;
+        }
+        if(!isValidTime(t)) return false;
+        int appt=timeToMin(t);
+        int present = current->tm_hour*60 + current->tm_min;
+        if(appt>present) return false;
+        return true;
     }
     bool isSlotAvailable(vector<appointment>& a,const businessConfig& config,string d, string t) {
         for(size_t i=0; i<a.size(); i++){
@@ -65,10 +107,27 @@ namespace{
         }
         return true;
     }
+    bool isValidPhone(string p,const vector<customer>& c){
+        if(p.size()!=10) return false;
+        for(size_t i=0;i<p.size();i++){
+            if(!isdigit(p[i])) return false;
+        }
+        for(size_t i=0;i<c.size();i++){
+            if(p==c[i].getPhone()){
+                cout<<"Phone No. already exixts"<<endl;
+                return false;
+            }
+        }
+        return true;
+    }
 }
 void addCust(vector<customer>& c,string n, string p){
-    string id=generateCustomerId();
-    c.emplace_back(id,n,p);
+    if(isValidPhone(p,c)){
+        string id=generateCustomerId();
+        c.emplace_back(id,n,p);
+        cout<<"Customer Added succesfully!!"<<endl;
+    }
+    else cout<<"Phone No. Issue!!"<<endl;
 }
 bool appointmentFit(const businessConfig& config,string t){
     if(!(isValidTime(t))) return false;
@@ -76,18 +135,17 @@ bool appointmentFit(const businessConfig& config,string t){
     return true;
 }
 bool addApp(vector<appointment>& a,const businessConfig& config,customer c,string d,string t){
-    if(isValidDate(d) && appointmentFit(config,t) && isSlotAvailable(a,config,d,t)){
+    if(isValidDate(d) && !isPastDate(d) && (!isToday(d) || !isPastTime(t)) && appointmentFit(config,t) && isSlotAvailable(a,config,d,t)){
         string id=generateAppointmentId();
         int ts=config.getAppointmentDuration();
         a.emplace_back(c,id,d,t,ts);
         return true;
     }
-    if(!isValidDate(d))
-        cout << "Invalid date" << endl;
-    if(!appointmentFit(config,t))
-        cout << "Invalid time/Outside working hours" << endl;
-    if(!isSlotAvailable(a,config,d,t))
-        cout << "Slot conflict" << endl;
+    if(!isValidDate(d)) cout << "Invalid date" << endl;
+    if(isPastDate(d)) cout << "Past date Entered" << endl;
+    if(isToday(d) || isPastTime(t)) cout<<"Time slot ended today."<<endl;
+    if(!appointmentFit(config,t)) cout << "Invalid time/Outside working hours" << endl;
+    if(!isSlotAvailable(a,config,d,t)) cout << "Slot conflict" << endl;
     return false;
 }
 void displayAp(const vector<appointment>& a){
