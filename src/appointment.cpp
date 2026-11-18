@@ -28,8 +28,27 @@ string appointment::getStatus() const{
 }
 bool appointment::setStatus(string a){
     if(a=="Completed"||a=="Cancelled"||a=="Confirmed"){ 
-        status=a;
-        return true;
+        if(status=="Pending"){
+            if(a=="Confirmed"||a=="Cancelled"){
+                status=a;
+                return true;
+            }
+            return false;
+        }
+        else if(status=="Confirmed"){
+            if(a=="Completed"||a=="Cancelled"){
+                status=a;
+                return true;
+            }
+            return false;
+        }
+        else{
+            cout<<"Cannot Update this status";
+            return false;
+        }
     }
-    else return false;
+    else{
+        cout<<"Invalid Status";
+        return false;
+    }
 }
